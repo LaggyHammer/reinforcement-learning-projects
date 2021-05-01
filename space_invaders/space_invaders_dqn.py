@@ -96,4 +96,3 @@ def main(train_episodes=40000, test_episodes=10, lr=0.0001):
 
 if __name__ == '__main__':
     main()
-
