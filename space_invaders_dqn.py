@@ -89,7 +89,7 @@ def main(train_episodes=40000, test_episodes=10, lr=0.0001):
 
     scores = test_agent(dqn, env, test_episodes)
 
-    dqn.save_weights('models\\dqn.h5f')
+    dqn.save_weights('models\\space_invaders_dqn.h5f')
 
     return dqn, scores
 
