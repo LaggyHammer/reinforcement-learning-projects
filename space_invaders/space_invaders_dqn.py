@@ -9,6 +9,9 @@ from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy
 
 
 def build_model(height, width, channels, actions):
+    """
+    CNN Structure to train the weights for
+    """
     model = Sequential()
     model.add(Conv2D(32, (8, 8), strides=(4, 4), activation='relu', input_shape=(3, height, width, channels)))
     model.add(Conv2D(64, (4, 4), strides=(2, 2), activation='relu'))
@@ -21,6 +24,9 @@ def build_model(height, width, channels, actions):
 
 
 def build_agent(model, actions):
+    """
+    Builds an Epsilon Greedy Deep Q Learning Agent
+    """
     policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1, value_min=0.1, value_test=0.2,
                                   nb_steps=10000)
     memory = SequentialMemory(limit=2000, window_length=3)
@@ -31,6 +37,9 @@ def build_agent(model, actions):
 
 
 def test_environment(env, episodes):
+    """
+    Tests if the environment has loaded successfully or not by taking random actions for a few episodes
+    """
     for episode in range(episodes):
         state = env.reset()
         done = False
@@ -45,7 +54,9 @@ def test_environment(env, episodes):
 
 
 def train_agent(dqn_agent, environment, train_episodes, lr):
-
+    """
+    Compiles & fits a deep Q learning agent with the ADAM optimizer
+    """
     dqn_agent.compile(Adam(lr=lr))
     dqn_agent.fit(environment, nb_steps=train_episodes)
 
@@ -53,7 +64,9 @@ def train_agent(dqn_agent, environment, train_episodes, lr):
 
 
 def test_agent(dqn_agent, environment, test_episodes):
-
+    """
+    tests & generates scores for a given deep Q learning agent
+    """
     scores = dqn_agent.test(environment, nb_episodes=test_episodes, visualize=True)
     print(np.mean(scores.history['episode_reward']))
 
@@ -61,6 +74,9 @@ def test_agent(dqn_agent, environment, test_episodes):
 
 
 def load_agent(weights_path):
+    """
+    loads a space-invaders agent if trained weights are available
+    """
     env = gym.make('SpaceInvaders-v0')
 
     height, width, channels = env.observation_space.shape
