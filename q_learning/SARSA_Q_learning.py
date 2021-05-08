@@ -17,6 +17,7 @@ class SARSA_Q_Reinforcer:
         self.q_table = q_table
 
     def read_params(self):
+        print(f'[INFO] Reading parameters from {self.params_file}')
         with open(self.params_file) as f:
             params = json.load(f)
 
@@ -56,6 +57,7 @@ class SARSA_Q_Reinforcer:
         state = self.env.observation_space.n
 
         if not self.q_table:
+            print('[INFO] Initializing Q table with zeroes')
             self.q_table = np.zeros((state, actions))
         else:
             if self.q_table.shape != (actions, state):
@@ -76,6 +78,7 @@ class SARSA_Q_Reinforcer:
 
         self.rewards_all_episodes = []
 
+        print('[INFO] Starting training...')
         for episode in range(num_episodes):
 
             state = self.env.reset()
@@ -102,17 +105,28 @@ class SARSA_Q_Reinforcer:
 
             self.rewards_all_episodes.append(rewards_current_episode)
 
-        print("Training Complete")
+        print("[INFO] Training Complete")
 
     def plot_training_rewards(self):
         rewards_per_thousand_episodes = np.split(np.array(self.rewards_all_episodes),
                                                  len(self.rewards_all_episodes) / 1000)
         count = 1000
 
+        count_list = []
+        reward_list = []
+
         print("Avg per thousand episodes")
         for r in rewards_per_thousand_episodes:
             print(f"{count} : {sum(r / 1000)}")
+            count_list.append(count)
+            reward_list.append(sum(r / 1000))
             count += 1000
+
+        plt.plot(count_list, reward_list)
+        plt.xlabel("Episodes")
+        plt.ylabel("Average Reward")
+        plt.savefig("training_rewards.png")
+        plt.show()
 
     def Q_table_test(self, no_of_episodes=3, max_steps_per_episodes=100):
         for episode in range(no_of_episodes):
@@ -148,7 +162,6 @@ class SARSA_Q_Reinforcer:
 
 
 if __name__ == '__main__':
-
     q_learner = SARSA_Q_Reinforcer(environment='FrozenLake-v0', params_json='params.json')
     q_learner.test_environment()
     q_learner.Q_learning_train()
