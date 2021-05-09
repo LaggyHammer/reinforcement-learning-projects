@@ -78,7 +78,7 @@ class SARSA_Q_Reinforcer:
 
         self.rewards_all_episodes = []
 
-        print('[INFO] Starting training...')
+        print('[INFO] Starting Q learning training...')
         for episode in range(num_episodes):
 
             state = self.env.reset()
@@ -95,6 +95,65 @@ class SARSA_Q_Reinforcer:
                                               (reward + discount_rate * np.max(self.q_table[new_state, :]))
 
                 state = new_state
+                rewards_current_episode += reward
+
+                if done:
+                    break
+
+            exploration_rate = min_exploration_rate + (max_exploration_rate - min_exploration_rate) * np.exp(
+                -exploration_decay_rate * episode)
+
+            self.rewards_all_episodes.append(rewards_current_episode)
+
+        print("[INFO] Training Complete")
+
+    def SARSA_learning_train(self):
+        # defining parameters
+        actions = self.env.action_space.n
+        state = self.env.observation_space.n
+
+        if not self.q_table:
+            print('[INFO] Initializing Q table with zeroes')
+            self.q_table = np.zeros((state, actions))
+        else:
+            if self.q_table.shape != (actions, state):
+                print("[ERROR] Q Table Shape does not match environment")
+                raise ValueError
+
+        train_params = self.params["training"]
+        num_episodes = train_params["num_episodes"]
+        max_steps_per_episodes = train_params["max_steps_per_episodes"]
+
+        learning_rate = train_params["learning_rate"]
+        discount_rate = train_params["discount_rate"]
+
+        exploration_rate = train_params["init_exploration_rate"]
+        max_exploration_rate = train_params["max_exploration_rate"]
+        min_exploration_rate = train_params["min_exploration_rate"]
+        exploration_decay_rate = train_params["exploration_decay_rate"]
+
+        self.rewards_all_episodes = []
+
+        print('[INFO] Starting SARSA training...')
+        for episode in range(num_episodes):
+
+            state = self.env.reset()
+            done = False
+            rewards_current_episode = 0
+
+            action = self.epsilon_greedy(state, exploration_rate)
+
+            for step in range(max_steps_per_episodes):
+
+                new_state, reward, done, info = self.env.step(action)
+
+                next_action = self.epsilon_greedy(new_state, exploration_rate)
+
+                self.q_table[state, action] = self.q_table[state, action] * (1 - learning_rate) + learning_rate * \
+                                              (reward + discount_rate * self.q_table[new_state, next_action])
+
+                state = new_state
+                action = next_action
                 rewards_current_episode += reward
 
                 if done:
@@ -126,7 +185,6 @@ class SARSA_Q_Reinforcer:
         plt.xlabel("Episodes")
         plt.ylabel("Average Reward")
         plt.savefig("training_rewards.png")
-        plt.show()
 
     def Q_table_test(self, no_of_episodes=3, max_steps_per_episodes=100, render=False):
         for episode in range(no_of_episodes):
@@ -169,3 +227,11 @@ if __name__ == '__main__':
     q_learner.Q_learning_train()
     q_learner.plot_training_rewards()
     q_learner.Q_table_test()
+    q_learning_table = q_learner.q_table
+
+    sarsa_learner = SARSA_Q_Reinforcer(environment='FrozenLake-v0', params_json='params.json')
+    sarsa_learner.test_environment()
+    sarsa_learner.SARSA_learning_train()
+    sarsa_learner.plot_training_rewards()
+    sarsa_learner.Q_table_test()
+    sarsa_table = sarsa_learner.q_table
