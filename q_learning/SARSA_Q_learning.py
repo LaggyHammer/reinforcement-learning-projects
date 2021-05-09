@@ -128,30 +128,32 @@ class SARSA_Q_Reinforcer:
         plt.savefig("training_rewards.png")
         plt.show()
 
-    def Q_table_test(self, no_of_episodes=3, max_steps_per_episodes=100):
+    def Q_table_test(self, no_of_episodes=3, max_steps_per_episodes=100, render=False):
         for episode in range(no_of_episodes):
             state = self.env.reset()
             done = False
-            print(f"On episode {episode}")
+            print(f"[INFO] Testing on episode {episode}")
             time.sleep(1)
 
             for step in range(max_steps_per_episodes):
                 clear_output(wait=True)
-                self.env.render()
-                time.sleep(0.4)
+                if render:
+                    self.env.render()
+                    time.sleep(0.4)
                 action = np.argmax(self.q_table[state, :])
 
                 new_state, reward, done, info = self.env.step(action)
 
                 if done:
-                    clear_output(wait=True)
-                    self.env.render()
+                    if render:
+                        clear_output(wait=True)
+                        self.env.render()
                     if reward == 1:
-                        print("Reached Goal")
+                        print("[INFO] Reached Goal")
                         time.sleep(2)
                         clear_output(wait=True)
                     else:
-                        print("Failed")
+                        print("[INFO] Failed")
                         time.sleep(2)
                         clear_output(wait=True)
 
@@ -166,3 +168,4 @@ if __name__ == '__main__':
     q_learner.test_environment()
     q_learner.Q_learning_train()
     q_learner.plot_training_rewards()
+    q_learner.Q_table_test()
